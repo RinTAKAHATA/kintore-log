@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { BodyPartDef, Exercise, Workout } from '../types';
+import type { BodyPartDef, Exercise, SetRecord, Workout, WorkoutEntry } from '../types';
 import { loadFromStorage, saveToStorage } from '../utils/storage';
 import { createId } from '../utils/id';
+import { todayDateString } from '../utils/date';
 
 // 最初に用意しておく部位（ここから自由に追加・削除・名前変更できる）
 const DEFAULT_BODY_PARTS: Array<{ name: string; color: string }> = [
@@ -55,8 +56,16 @@ interface WorkoutContextValue {
   updateExercise: (id: string, name: string, bodyPartId: string) => void;
   deleteExercise: (id: string) => void;
 
-  // ワークアウト記録（今回はまだ空。次のステップで記録画面から使う）
-  workouts: Workout[];
+  // ワークアウト記録
+  workouts: Workout[]; // 終了したワークアウト（履歴）
+  activeWorkout: Workout | null; // 今トレ中のワークアウト（無ければnull）
+  startWorkout: () => void;
+  finishWorkout: () => void;
+  addEntryToActiveWorkout: (exerciseId: string) => void;
+  startRestForEntry: (entryId: string) => void;
+  saveSet: (entryId: string, setId: string, weight: number, reps: number) => void;
+  deleteSet: (entryId: string, setId: string) => void;
+  getLastRecordFor: (exerciseId: string) => SetRecord[] | null;
 }
 
 const WorkoutContext = createContext<WorkoutContextValue | undefined>(undefined);
@@ -68,7 +77,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   const [exercises, setExercises] = useState<Exercise[]>(() =>
     loadFromStorage<Exercise[]>('exercises', []),
   );
-  const [workouts] = useState<Workout[]>(() => loadFromStorage<Workout[]>('workouts', []));
+  const [workouts, setWorkouts] = useState<Workout[]>(() =>
+    loadFromStorage<Workout[]>('workouts', []),
+  );
+  const [activeWorkout, setActiveWorkout] = useState<Workout | null>(() =>
+    loadFromStorage<Workout | null>('activeWorkout', null),
+  );
 
   useEffect(() => {
     saveToStorage('bodyParts', bodyParts);
@@ -77,6 +91,14 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     saveToStorage('exercises', exercises);
   }, [exercises]);
+
+  useEffect(() => {
+    saveToStorage('workouts', workouts);
+  }, [workouts]);
+
+  useEffect(() => {
+    saveToStorage('activeWorkout', activeWorkout);
+  }, [activeWorkout]);
 
   // --- 部位マスタ ---
 
@@ -93,9 +115,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }
 
   function updateBodyPart(id: string, name: string) {
-    setBodyParts((prev) =>
-      prev.map((part) => (part.id === id ? { ...part, name } : part)),
-    );
+    setBodyParts((prev) => prev.map((part) => (part.id === id ? { ...part, name } : part)));
   }
 
   function deleteBodyPart(id: string): DeleteBodyPartResult {
@@ -135,6 +155,111 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     setExercises((prev) => prev.filter((exercise) => exercise.id !== id));
   }
 
+  // --- ワークアウト記録 ---
+
+  function startWorkout() {
+    setActiveWorkout((prev) => {
+      if (prev) return prev; // すでに進行中ならそのまま
+      const now = new Date();
+      const workout: Workout = {
+        id: createId(),
+        date: todayDateString(now),
+        startedAt: now.toISOString(),
+        entries: [],
+      };
+      return workout;
+    });
+  }
+
+  function finishWorkout() {
+    setActiveWorkout((prev) => {
+      if (!prev) return prev;
+      // 「保存」まで押していない(レスト中で確定していない)セットは記録として残さない
+      const finished: Workout = {
+        ...prev,
+        finishedAt: new Date().toISOString(),
+        entries: prev.entries
+          .map((entry) => ({ ...entry, sets: entry.sets.filter((set) => set.confirmed) }))
+          .filter((entry) => entry.sets.length > 0), // セットが1つも無い種目は履歴に残さない
+      };
+      setWorkouts((prevWorkouts) => [...prevWorkouts, finished]);
+      return null;
+    });
+  }
+
+  function addEntryToActiveWorkout(exerciseId: string) {
+    setActiveWorkout((prev) => {
+      if (!prev) return prev;
+      if (prev.entries.some((entry) => entry.exerciseId === exerciseId)) return prev; // 追加済み
+      const entry: WorkoutEntry = { id: createId(), exerciseId, sets: [] };
+      return { ...prev, entries: [...prev.entries, entry] };
+    });
+  }
+
+  function startRestForEntry(entryId: string) {
+    setActiveWorkout((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        entries: prev.entries.map((entry) => {
+          if (entry.id !== entryId) return entry;
+          if (entry.sets.some((set) => !set.confirmed)) return entry; // すでにレスト中のセットがある
+          const lastConfirmed = [...entry.sets].reverse().find((set) => set.confirmed);
+          const pendingSet: SetRecord = {
+            id: createId(),
+            type: 'normal',
+            weight: lastConfirmed?.weight ?? 0,
+            reps: lastConfirmed?.reps ?? 0,
+            confirmed: false,
+          };
+          return { ...entry, sets: [...entry.sets, pendingSet] };
+        }),
+      };
+    });
+  }
+
+  function saveSet(entryId: string, setId: string, weight: number, reps: number) {
+    setActiveWorkout((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        entries: prev.entries.map((entry) =>
+          entry.id !== entryId
+            ? entry
+            : {
+                ...entry,
+                sets: entry.sets.map((set) =>
+                  set.id === setId ? { ...set, weight, reps, confirmed: true } : set,
+                ),
+              },
+        ),
+      };
+    });
+  }
+
+  function deleteSet(entryId: string, setId: string) {
+    setActiveWorkout((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        entries: prev.entries.map((entry) =>
+          entry.id !== entryId
+            ? entry
+            : { ...entry, sets: entry.sets.filter((set) => set.id !== setId) },
+        ),
+      };
+    });
+  }
+
+  function getLastRecordFor(exerciseId: string): SetRecord[] | null {
+    const past = workouts
+      .filter((workout) => workout.entries.some((entry) => entry.exerciseId === exerciseId))
+      .sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1)); // 新しい順
+    if (past.length === 0) return null;
+    const entry = past[0].entries.find((e) => e.exerciseId === exerciseId);
+    return entry ? entry.sets.filter((set) => set.confirmed) : null;
+  }
+
   return (
     <WorkoutContext.Provider
       value={{
@@ -147,6 +272,14 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         updateExercise,
         deleteExercise,
         workouts,
+        activeWorkout,
+        startWorkout,
+        finishWorkout,
+        addEntryToActiveWorkout,
+        startRestForEntry,
+        saveSet,
+        deleteSet,
+        getLastRecordFor,
       }}
     >
       {children}

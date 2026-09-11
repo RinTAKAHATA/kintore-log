@@ -32,6 +32,7 @@ export interface SetRecord {
   weight: number;
   reps: number;
   drops?: DropStage[]; // typeが'drop'のときだけ使う
+  confirmed: boolean; // 「保存」を押して確定したらtrue。falseの間はレスト中＝入力待ち
 }
 // レスト時間は画面上で計るだけ（ストップウォッチ表示）で、データとしては保存しない
 

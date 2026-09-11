@@ -88,6 +88,13 @@
   background: var(--color-primary-dark);
 }
 
+.button--large {
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
 .link-button {
   background: none;
   border: none;
@@ -251,4 +258,114 @@
   color: var(--color-danger);
   font-size: 13px;
   margin: 0;
+}
+
+/* 記録画面のツールバー */
+.workout-editor__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workout-editor__date {
+  font-weight: 600;
+}
+
+/* 種目ブロック（記録画面で種目ごとに表示するカード） */
+.exercise-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.exercise-block__header h3 {
+  margin: 0;
+}
+
+.exercise-block__sets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+/* 1セットぶんの表示 */
+.set-row {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.set-row--done {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.set-row__summary {
+  font-size: 15px;
+}
+
+.set-row--resting {
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.set-row__timer {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.set-row__inputs {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.set-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ＋－ボタンで重量・回数を調整する部品 */
+.number-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.number-stepper__label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.number-stepper__control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.number-stepper__button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.number-stepper__input {
+  width: 56px;
+  text-align: center;
+  padding: 6px 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
 }

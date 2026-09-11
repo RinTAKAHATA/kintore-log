@@ -1,7 +1,16 @@
+import { useNavigate } from 'react-router-dom';
 import { BodyPartManager } from '../components/BodyPartManager';
-import { ExercisePicker } from '../components/ExercisePicker';
+import { useWorkout } from '../context/WorkoutContext';
 
 export function Home() {
+  const { activeWorkout, startWorkout } = useWorkout();
+  const navigate = useNavigate();
+
+  function handleStart() {
+    if (!activeWorkout) startWorkout();
+    navigate('/record');
+  }
+
   return (
     <div className="page">
       <section className="card">
@@ -12,13 +21,9 @@ export function Home() {
         <BodyPartManager />
       </section>
 
-      <section className="card">
-        <h2>種目マスタ</h2>
-        <p className="card__note">
-          まずはよく使う種目を登録しておくと、このあと記録画面がスムーズになります。
-        </p>
-        <ExercisePicker />
-      </section>
+      <button type="button" className="button button--primary button--large" onClick={handleStart}>
+        {activeWorkout ? 'トレを再開' : 'トレを開始'}
+      </button>
     </div>
   );
 }
