@@ -1,4 +1,5 @@
-import type { BodyPartDef, Exercise, SetRecord, WorkoutEntry } from '../types';
+import type { BodyPartDef, DropStage, Exercise, SetRecord, WorkoutEntry } from '../types';
+import { formatSet } from '../utils/format';
 import { BodyPartBadge } from './BodyPartBadge';
 import { SetRow } from './SetRow';
 
@@ -8,7 +9,7 @@ interface Props {
   bodyPart?: BodyPartDef;
   lastRecord: SetRecord[] | null;
   onStartRest: () => void;
-  onSaveSet: (setId: string, weight: number, reps: number) => void;
+  onSaveSet: (setId: string, weight: number, reps: number, drops: DropStage[]) => void;
   onDeleteSet: (setId: string) => void;
 }
 
@@ -32,7 +33,7 @@ export function ExerciseBlock({
 
       <p className="card__note">
         {lastRecord && lastRecord.length > 0
-          ? `前回：${lastRecord.map((set) => `${set.weight}kg×${set.reps}`).join(', ')}`
+          ? `前回：${lastRecord.map((set) => formatSet(set)).join(', ')}`
           : '前回の記録はまだありません'}
       </p>
 
@@ -42,7 +43,7 @@ export function ExerciseBlock({
             <SetRow
               key={set.id}
               set={set}
-              onSave={(weight, reps) => onSaveSet(set.id, weight, reps)}
+              onSave={(weight, reps, drops) => onSaveSet(set.id, weight, reps, drops)}
               onDelete={() => onDeleteSet(set.id)}
             />
           ))}

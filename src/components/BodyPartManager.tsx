@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useWorkout } from '../context/WorkoutContext';
-import { BodyPartBadge } from './BodyPartBadge';
 
 /**
  * 部位（胸・背中・脚…）の一覧表示と、追加・名前変更・削除をまとめたパーツ。
@@ -31,13 +30,8 @@ export function BodyPartManager() {
   if (!editing) {
     return (
       <div className="body-part-manager">
-        <div className="body-part-manager__badges">
-          {bodyParts.map((part) => (
-            <BodyPartBadge key={part.id} name={part.name} color={part.color} />
-          ))}
-        </div>
         <button type="button" className="link-button" onClick={() => setEditing(true)}>
-          部位を編集
+          部位を編集（追加・削除・名前変更）
         </button>
       </div>
     );

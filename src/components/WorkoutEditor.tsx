@@ -51,7 +51,7 @@ export function WorkoutEditor() {
             bodyPart={bodyPart}
             lastRecord={getLastRecordFor(exercise.id)}
             onStartRest={() => startRestForEntry(entry.id)}
-            onSaveSet={(setId, weight, reps) => saveSet(entry.id, setId, weight, reps)}
+            onSaveSet={(setId, weight, reps, drops) => saveSet(entry.id, setId, weight, reps, drops)}
             onDeleteSet={(setId) => deleteSet(entry.id, setId)}
           />
         );

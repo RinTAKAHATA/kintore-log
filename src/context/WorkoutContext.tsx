@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { BodyPartDef, Exercise, SetRecord, Workout, WorkoutEntry } from '../types';
+import type { BodyPartDef, DropStage, Exercise, SetRecord, Workout, WorkoutEntry } from '../types';
 import { loadFromStorage, saveToStorage } from '../utils/storage';
 import { createId } from '../utils/id';
-import { todayDateString } from '../utils/date';
+import { daysBetween, todayDateString } from '../utils/date';
 
 // 最初に用意しておく部位（ここから自由に追加・削除・名前変更できる）
 const DEFAULT_BODY_PARTS: Array<{ name: string; color: string }> = [
@@ -43,6 +43,18 @@ interface DeleteBodyPartResult {
   exercises: string[]; // 削除できなかった場合、その部位を使っている種目名
 }
 
+/** 部位ごとの「最後にやってから何日たったか」の1行分 */
+export interface BodyPartInterval {
+  bodyPart: BodyPartDef;
+  lastDate: string | null;
+  daysSince: number | null;
+  status: 'none' | 'recovering' | 'ok' | 'overdue';
+}
+
+// 回復ステータスの目安（日数）。今は全部位共通の一律ルール
+const RECOVERING_UNTIL_DAYS = 2; // これ未満＝回復中
+const OK_UNTIL_DAYS = 4; // これ以下＝トレOK、これを超えたら空きすぎ
+
 interface WorkoutContextValue {
   // 部位マスタ
   bodyParts: BodyPartDef[];
@@ -63,9 +75,10 @@ interface WorkoutContextValue {
   finishWorkout: () => void;
   addEntryToActiveWorkout: (exerciseId: string) => void;
   startRestForEntry: (entryId: string) => void;
-  saveSet: (entryId: string, setId: string, weight: number, reps: number) => void;
+  saveSet: (entryId: string, setId: string, weight: number, reps: number, drops: DropStage[]) => void;
   deleteSet: (entryId: string, setId: string) => void;
   getLastRecordFor: (exerciseId: string) => SetRecord[] | null;
+  getBodyPartIntervals: () => BodyPartInterval[];
 }
 
 const WorkoutContext = createContext<WorkoutContextValue | undefined>(undefined);
@@ -218,7 +231,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  function saveSet(entryId: string, setId: string, weight: number, reps: number) {
+  function saveSet(entryId: string, setId: string, weight: number, reps: number, drops: DropStage[]) {
     setActiveWorkout((prev) => {
       if (!prev) return prev;
       return {
@@ -229,7 +242,16 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             : {
                 ...entry,
                 sets: entry.sets.map((set) =>
-                  set.id === setId ? { ...set, weight, reps, confirmed: true } : set,
+                  set.id === setId
+                    ? {
+                        ...set,
+                        weight,
+                        reps,
+                        drops: drops.length > 0 ? drops : undefined,
+                        type: drops.length > 0 ? 'drop' : 'normal',
+                        confirmed: true,
+                      }
+                    : set,
                 ),
               },
         ),
@@ -260,6 +282,38 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     return entry ? entry.sets.filter((set) => set.confirmed) : null;
   }
 
+  function getBodyPartIntervals(): BodyPartInterval[] {
+    // トレ中(activeWorkout)で確定したセットも「最後にやった」に数える
+    const allWorkouts = activeWorkout ? [...workouts, activeWorkout] : workouts;
+    const today = todayDateString();
+
+    return bodyParts.map((part) => {
+      const exerciseIds = exercises.filter((e) => e.bodyPartId === part.id).map((e) => e.id);
+      let lastDate: string | null = null;
+      for (const workout of allWorkouts) {
+        const touchesThisPart = workout.entries.some(
+          (entry) =>
+            exerciseIds.includes(entry.exerciseId) && entry.sets.some((set) => set.confirmed),
+        );
+        if (touchesThisPart && (!lastDate || workout.date > lastDate)) {
+          lastDate = workout.date;
+        }
+      }
+
+      if (!lastDate) {
+        return { bodyPart: part, lastDate: null, daysSince: null, status: 'none' as const };
+      }
+      const daysSince = daysBetween(lastDate, today);
+      const status =
+        daysSince < RECOVERING_UNTIL_DAYS
+          ? ('recovering' as const)
+          : daysSince <= OK_UNTIL_DAYS
+            ? ('ok' as const)
+            : ('overdue' as const);
+      return { bodyPart: part, lastDate, daysSince, status };
+    });
+  }
+
   return (
     <WorkoutContext.Provider
       value={{
@@ -280,6 +334,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         saveSet,
         deleteSet,
         getLastRecordFor,
+        getBodyPartIntervals,
       }}
     >
       {children}

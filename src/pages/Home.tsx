@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { BodyPartIntervalList } from '../components/BodyPartIntervalList';
 import { BodyPartManager } from '../components/BodyPartManager';
 import { useWorkout } from '../context/WorkoutContext';
 
@@ -15,9 +16,7 @@ export function Home() {
     <div className="page">
       <section className="card">
         <h2>部位別インターバル</h2>
-        <p className="card__note">
-          （準備中）記録機能ができたら、各部位に「最後にやってから何日たったか」が表示されます。
-        </p>
+        <BodyPartIntervalList />
         <BodyPartManager />
       </section>
 

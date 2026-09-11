@@ -15,3 +15,11 @@ export function formatElapsed(totalSeconds: number): string {
   const seconds = totalSeconds % 60;
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
+
+/** "YYYY-MM-DD" 形式の日付2つの間の日数を計算する（部位別インターバル用） */
+export function daysBetween(fromDateStr: string, toDateStr: string): number {
+  const from = new Date(`${fromDateStr}T00:00:00`);
+  const to = new Date(`${toDateStr}T00:00:00`);
+  const diffMs = to.getTime() - from.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
