@@ -15,7 +15,7 @@ interface Props {
  * 二重管理になってしまう、という指摘を受けて1つにまとめた。
  */
 export function ExercisePicker({ onSelect }: Props) {
-  const { exercises, addExercise, updateExercise, deleteExercise } = useWorkout();
+  const { exercises, addExercise, updateExercise, deleteExercise, bodyParts } = useWorkout();
   const [query, setQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -64,7 +64,10 @@ export function ExercisePicker({ onSelect }: Props) {
                 onClick={() => onSelect?.(exercise)}
               >
                 <span className="exercise-picker__name">{exercise.name}</span>
-                <BodyPartBadge bodyPart={exercise.bodyPart} />
+                {(() => {
+                  const part = bodyParts.find((p) => p.id === exercise.bodyPartId);
+                  return <BodyPartBadge name={part?.name ?? '不明'} color={part?.color ?? '#9aa0ad'} />;
+                })()}
               </button>
               <div className="exercise-picker__row-actions">
                 <button type="button" className="link-button" onClick={() => setEditingId(exercise.id)}>

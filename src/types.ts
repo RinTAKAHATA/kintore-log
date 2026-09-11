@@ -1,15 +1,18 @@
 // アプリ全体で使うデータの型をここにまとめる
 
-/** 部位タグ。種目ごとに1つ持たせて、部位別インターバル表示に使う */
-export type BodyPart = '胸' | '背中' | '脚' | '肩' | '腕' | '腹' | 'その他';
-
-export const BODY_PARTS: BodyPart[] = ['胸', '背中', '脚', '肩', '腕', '腹', 'その他'];
+/** 部位（自分で追加・削除・名前変更できるデータ。最初は7個を初期値として用意する） */
+export interface BodyPartDef {
+  id: string;
+  name: string;
+  color: string; // バッジの色
+  createdAt: string; // ISO日時
+}
 
 /** 種目マスタ（例：ベンチプレス、スクワット…） */
 export interface Exercise {
   id: string;
   name: string;
-  bodyPart: BodyPart;
+  bodyPartId: string; // BodyPartDef.id への参照
   createdAt: string; // ISO日時
 }
 
@@ -29,9 +32,8 @@ export interface SetRecord {
   weight: number;
   reps: number;
   drops?: DropStage[]; // typeが'drop'のときだけ使う
-  targetRestSec?: number; // 目標レスト（セット後にタイマーで計る秒数）
-  restSec?: number; // 実際に休んだ秒数（次のセットを記録した時点で確定）
 }
+// レスト時間は画面上で計るだけ（ストップウォッチ表示）で、データとしては保存しない
 
 /** ワークアウト内の1種目ぶん（種目＋そのセットの配列） */
 export interface WorkoutEntry {

@@ -1,3 +1,4 @@
+import { BodyPartManager } from '../components/BodyPartManager';
 import { ExercisePicker } from '../components/ExercisePicker';
 
 export function Home() {
@@ -6,8 +7,9 @@ export function Home() {
       <section className="card">
         <h2>部位別インターバル</h2>
         <p className="card__note">
-          （準備中）記録機能ができたら、ここに「各部位を最後にやってから何日たったか」が出ます。
+          （準備中）記録機能ができたら、各部位に「最後にやってから何日たったか」が表示されます。
         </p>
+        <BodyPartManager />
       </section>
 
       <section className="card">
