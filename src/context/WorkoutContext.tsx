@@ -79,6 +79,7 @@ interface WorkoutContextValue {
   deleteSet: (entryId: string, setId: string) => void;
   getLastRecordFor: (exerciseId: string) => SetRecord[] | null;
   getBodyPartIntervals: () => BodyPartInterval[];
+  getMostRecentWorkout: () => Workout | null;
 }
 
 const WorkoutContext = createContext<WorkoutContextValue | undefined>(undefined);
@@ -314,6 +315,11 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  function getMostRecentWorkout(): Workout | null {
+    if (workouts.length === 0) return null;
+    return [...workouts].sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1))[0];
+  }
+
   return (
     <WorkoutContext.Provider
       value={{
@@ -335,6 +341,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         deleteSet,
         getLastRecordFor,
         getBodyPartIntervals,
+        getMostRecentWorkout,
       }}
     >
       {children}

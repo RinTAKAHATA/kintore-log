@@ -16,11 +16,23 @@ export function WorkoutEditor() {
     deleteSet,
     finishWorkout,
     getLastRecordFor,
+    getMostRecentWorkout,
   } = useWorkout();
   const [showPicker, setShowPicker] = useState(false);
   const navigate = useNavigate();
 
   if (!activeWorkout) return null; // 呼び出し側（Record.tsx）でガードしている想定
+
+  const mostRecentWorkout = getMostRecentWorkout();
+  const canCopyLastWorkout =
+    activeWorkout.entries.length === 0 && !!mostRecentWorkout && mostRecentWorkout.entries.length > 0;
+
+  function handleCopyLastWorkout() {
+    if (!mostRecentWorkout) return;
+    for (const entry of mostRecentWorkout.entries) {
+      addEntryToActiveWorkout(entry.exerciseId);
+    }
+  }
 
   function handleFinish() {
     if (activeWorkout!.entries.length === 0) {
@@ -56,6 +68,12 @@ export function WorkoutEditor() {
           />
         );
       })}
+
+      {canCopyLastWorkout && !showPicker && (
+        <button type="button" className="button" onClick={handleCopyLastWorkout}>
+          前回（{mostRecentWorkout!.date}）と同じ種目で始める
+        </button>
+      )}
 
       {showPicker ? (
         <section className="card">
