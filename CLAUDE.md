@@ -53,23 +53,36 @@
 
 【コンポーネント】（現状）
 - Header（ナビゲーション）
-- ExercisePicker（種目の検索・一覧・追加・編集・削除。今後、記録画面からも呼び出す）
+- BodyPartManager（部位の追加・名前変更・削除）／BodyPartIntervalList（部位別インターバル表示）／BodyPartBadge（部位タグ）
+- ExercisePicker（種目の検索・一覧・追加・編集・削除。ホームと記録画面の両方から使う）
 - ExerciseForm（種目の追加・編集フォーム。ExercisePickerの内部で使用）
-- BodyPartBadge（部位タグの表示）
-- 今後追加予定：WorkoutEditor / ExerciseBlock / SetRow / DropSetRows /
-  RestTimerBar / HistoryList / WorkoutDetail / BodyPartIntervalCard / RecoveryBadge
+- WorkoutEditor（記録画面本体）／ExerciseBlock（種目1つぶん）／SetRow（セット1つぶん、保存済み/レスト中の2状態）
+- NumberStepper（＋－ボタンでの数値入力）
+- History（履歴画面、一覧の中でその場に開閉する詳細表示）
 
 【データ保存】
-- 保存する必要があるデータ：種目マスタ、ワークアウト記録（セット・ドロップ・実測レスト）、
-  部位ごとの回復目安の設定
+- 保存するデータ：部位マスタ／種目マスタ／ワークアウト履歴／進行中のワークアウト
 - 保存方法：localStorage（キーは "kintore-log:" プレフィックス付き。src/utils/storage.ts 参照）
 - 型定義は src/types.ts にまとめている
+- レストタイマーは画面表示のみで、秒数はデータとして保存しない（指示により）
+
+【デプロイ】
+- GitHub Pages（`.github/workflows/deploy.yml` でmainにpushするたび自動ビルド・公開）
+- 公開URL：https://rintakahata.github.io/kintore-log/
+- GitHub側で1回だけ、リポジトリの Settings → Pages → Build and deployment の
+  Source を「GitHub Actions」にする設定が必要
 
 ■ 実装の状況（進めるたびに更新する）
 - [x] プロジェクト作成・ルーティング・スタイルの土台
+- [x] 部位マスタ（追加・名前変更・削除）
 - [x] 種目マスタ（ExercisePicker / ExerciseForm / BodyPartBadge）
-- [ ] ワークアウト記録画面（リアルタイム記録＋レスト開始/保存の2段階セット入力）
-- [ ] ドロップセット
-- [ ] 部位別インターバル
-- [ ] 履歴画面
-- [ ] （追加）スーパーセット・グラフ・ルーティンテンプレ
+- [x] ワークアウト記録画面（リアルタイム記録＋レスト開始/保存の2段階セット入力）
+- [x] ドロップセット
+- [x] 部位別インターバル
+- [x] 履歴画面
+- [x] スマホ向けレスポンシブ調整
+- [x] GitHub Pagesへのデプロイ設定（GitHub側の1回だけの設定は別途必要）
+- [x] （追加・簡易版）前回と同じ種目で始めるボタン
+- [ ] （追加・未着手）スーパーセット：複雑さに対して残り時間が少なく見送った
+- [ ] （追加・未着手）重量推移グラフ・自己ベスト：見送った（グラフ描画は次の機能候補）
+- [ ] （追加・未着手）名前付きルーティンテンプレ：「前回と同じ種目で始める」で近い効果を先に実装した
