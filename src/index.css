@@ -1,0 +1,54 @@
+:root {
+  --color-bg: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-border: #dfe3ec;
+  --color-text: #1a1d29;
+  --color-text-muted: #6b7280;
+  --color-primary: #2f6fed;
+  --color-primary-dark: #1f4fc4;
+  --color-danger: #e0483f;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+
+  font-family: system-ui, 'Segoe UI', Roboto, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+  color-scheme: light;
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #12141c;
+    --color-surface: #1b1e29;
+    --color-border: #2b2f3d;
+    --color-text: #e7e9ee;
+    --color-text-muted: #9aa0ad;
+    --color-primary: #5b8def;
+    --color-primary-dark: #4472d6;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 8px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
