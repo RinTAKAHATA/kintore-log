@@ -483,8 +483,8 @@
   background: #2f9e6f;
 }
 
-.recovery-badge--overdue {
-  background: #e0483f;
+.recovery-badge--recovered {
+  background: #2f6fed;
 }
 
 /* 履歴画面 */

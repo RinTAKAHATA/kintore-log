@@ -48,12 +48,12 @@ export interface BodyPartInterval {
   bodyPart: BodyPartDef;
   lastDate: string | null;
   daysSince: number | null;
-  status: 'none' | 'recovering' | 'ok' | 'overdue';
+  status: 'none' | 'recovering' | 'ok' | 'recovered';
 }
 
 // 回復ステータスの目安（日数）。今は全部位共通の一律ルール
 const RECOVERING_UNTIL_DAYS = 2; // これ未満＝回復中
-const OK_UNTIL_DAYS = 4; // これ以下＝トレOK、これを超えたら空きすぎ
+const OK_UNTIL_DAYS = 4; // これ以下＝トレOK、これを超えたら完全回復
 
 interface WorkoutContextValue {
   // 部位マスタ
@@ -310,7 +310,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           ? ('recovering' as const)
           : daysSince <= OK_UNTIL_DAYS
             ? ('ok' as const)
-            : ('overdue' as const);
+            : ('recovered' as const);
       return { bodyPart: part, lastDate, daysSince, status };
     });
   }
